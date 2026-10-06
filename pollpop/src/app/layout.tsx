@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Sora } from "next/font/google";
+import { PopcorniProviders } from "@/components/popcorni/PopcorniProviders";
 import "./globals.css";
 
 const display = Outfit({
@@ -30,7 +31,9 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${body.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <PopcorniProviders>{children}</PopcorniProviders>
+      </body>
     </html>
   );
 }

@@ -151,3 +151,58 @@ input[type="radio"] {
   animation: mascot-winner-glow 0.9s ease-in-out infinite;
   transform-origin: center bottom;
 }
+
+/* Pro: RGB rainbow on the winning bar */
+@keyframes winner-bar-rainbow {
+  0% {
+    filter: hue-rotate(0deg) brightness(1.12) saturate(1.2);
+  }
+  100% {
+    filter: hue-rotate(360deg) brightness(1.28) saturate(1.35);
+  }
+}
+
+.winner-bar-rainbow {
+  animation: winner-bar-rainbow 1.15s linear infinite;
+  background-image: linear-gradient(
+    90deg,
+    #22d3ee,
+    #e879f9,
+    #facc15,
+    #34d399,
+    #22d3ee
+  ) !important;
+  background-size: 220% 100%;
+  box-shadow: 0 0 22px 4px color-mix(in srgb, var(--pc-accent) 65%, transparent);
+}
+
+.popcorni-particle {
+  position: absolute;
+  bottom: -8%;
+  animation-name: popcorni-float;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  user-select: none;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px var(--pc-accent));
+}
+
+@keyframes popcorni-float {
+  0% {
+    transform: translate3d(0, 12vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(var(--pc-drift), -110vh, 0) rotate(18deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popcorni-particle {
+    display: none;
+  }
+}

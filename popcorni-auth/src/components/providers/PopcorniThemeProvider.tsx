@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -22,6 +23,7 @@ import {
   getThemeSnapshot,
   subscribeThemeStore,
   writeStoredThemeId,
+  writeThemeCookie,
 } from "@/lib/theme/storage";
 import type {
   PopcorniTheme,
@@ -56,6 +58,10 @@ export function PopcorniThemeProvider({ children }: { children: ReactNode }) {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeTheme, setUpgradeTheme] = useState<PopcorniTheme | null>(null);
   const themes = useMemo(() => listPopcorniThemes(), []);
+  useEffect(() => {
+    writeThemeCookie(storedId);
+  }, [storedId]);
+
   const themeId = resolveActiveThemeId({
     storedId,
     authLoading: isLoading,

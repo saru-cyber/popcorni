@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { PopcorniAccountLinks } from "@/components/popcorni/PopcorniAccountLinks";
 
 export function BrandHeader({
   rightSlot,
@@ -43,7 +44,10 @@ export function BrandHeader({
           </h1>
         ) : null}
       </div>
-      {rightSlot}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {rightSlot}
+        <PopcorniAccountLinks />
+      </div>
     </header>
   );
 }

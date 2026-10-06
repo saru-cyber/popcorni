@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 type CopyButtonProps = {
   label: string;
   value: string;
   className?: string;
+  style?: CSSProperties;
 };
 
 export function CopyButton({
   label,
   value,
   className = "bg-cyan-500 hover:bg-cyan-400 text-slate-950",
+  style,
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -30,6 +32,7 @@ export function CopyButton({
       type="button"
       onClick={() => void handleCopy()}
       className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] ${className}`}
+      style={style}
     >
       {copied ? "Copied!" : label}
     </button>

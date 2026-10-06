@@ -1,19 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CopyButton } from "@/components/CopyButton";
 import { LiveResultsChart } from "@/components/LiveResultsChart";
+import { PopcorniAccountLinks } from "@/components/popcorni/PopcorniAccountLinks";
+import {
+  chartChrome,
+  PopcorniScreen,
+} from "@/components/popcorni/PopcorniScreen";
+import { usePopcorniSession } from "@/components/popcorni/PopcorniSessionProvider";
+import { usePopcorniTheme } from "@/components/popcorni/PopcorniThemeProvider";
 import { getAppBaseUrl, getConfiguredAppUrl } from "@/lib/app-url";
 import {
   clearActivePollId,
   setActivePollId,
   setSessionPhase,
 } from "@/lib/poll-storage";
-import { closePoll } from "@/lib/polls";
+import { closePoll, setPremiumFx } from "@/lib/polls";
+import { appendThemeQuery } from "@/lib/popcorni/screenTheme";
 import { useLivePoll } from "@/lib/hooks/useLivePoll";
 import { getTheme } from "@/config/themes";
 
@@ -38,6 +46,8 @@ export default function AdminPage() {
   const router = useRouter();
   const { poll, counts, totalVotes, loading, error, votes, lastBumpedOptionId } =
     useLivePoll(pollId);
+  const { isPro, features, isLoading: authLoading } = usePopcorniSession();
+  const { theme, surfaces } = usePopcorniTheme();
   const [busy, setBusy] = useState<BusyKind>(null);
   const [dialog, setDialog] = useState<DialogKind>(null);
   const baseUrl = useSyncExternalStore(
@@ -47,11 +57,22 @@ export default function AdminPage() {
   );
 
   const themeConfig = getTheme(poll?.theme);
-  const admin = themeConfig.admin;
+  const chrome = chartChrome(theme);
+  const premiumSynced = useRef(false);
+
+  useEffect(() => {
+    if (authLoading || !isPro || !poll || poll.enable_super_votes || premiumSynced.current) {
+      return;
+    }
+    premiumSynced.current = true;
+    void setPremiumFx(poll.id, true).catch(() => {
+      premiumSynced.current = false;
+    });
+  }, [authLoading, isPro, poll]);
 
   useEffect(() => {
     document.body.classList.add("admin-shell");
-    document.documentElement.dataset.adminTheme = themeConfig.id;
+    document.documentElement.dataset.adminTheme = theme.id;
     const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevBodyOverflow = document.body.style.overflow;
     document.documentElement.style.overflow = "hidden";
@@ -62,15 +83,25 @@ export default function AdminPage() {
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.overflow = prevBodyOverflow;
     };
-  }, [themeConfig.id]);
+  }, [theme.id]);
 
   const voteUrl = useMemo(
-    () => (baseUrl ? `${baseUrl}/poll/${pollId}` : ""),
-    [baseUrl, pollId],
+    () =>
+      baseUrl
+        ? appendThemeQuery(`${baseUrl}/poll/${pollId}`, theme.id, false)
+        : "",
+    [baseUrl, pollId, theme.id],
   );
   const obsUrl = useMemo(
-    () => (baseUrl ? `${baseUrl}/poll/${pollId}/obs` : ""),
-    [baseUrl, pollId],
+    () =>
+      baseUrl
+        ? appendThemeQuery(
+            `${baseUrl}/poll/${pollId}/obs`,
+            theme.id,
+            features.premiumWinnerFx,
+          )
+        : "",
+    [baseUrl, pollId, theme.id, features.premiumWinnerFx],
   );
   const projectionUrl = useMemo(
     () => (baseUrl ? `${baseUrl}/poll/${pollId}/projection` : ""),
@@ -132,35 +163,41 @@ export default function AdminPage() {
     setDialog("finish");
   }
 
+  const cardStyle = {
+    ...surfaces.card,
+    borderColor: theme.colors.cardBorder,
+  };
+
   if (loading) {
     return (
-      <main
-        className={`${admin.bg} ${admin.text} flex items-center justify-center px-4`}
-        data-theme={themeConfig.id}
-      >
-        <p className={admin.meta}>Loading poll…</p>
-      </main>
+      <PopcorniScreen mode="app" source="account" className="h-screen">
+        <main className="flex h-full flex-col items-center justify-center gap-4 px-4">
+          <PopcorniAccountLinks />
+          <p style={surfaces.muted}>Loading poll…</p>
+        </main>
+      </PopcorniScreen>
     );
   }
 
   if (error || !poll) {
     return (
-      <main
-        className={`${admin.bg} ${admin.text} flex flex-col items-center justify-center gap-4 px-4`}
-        data-theme={themeConfig.id}
-      >
-        <p className="text-rose-300">{error ?? "Poll not found"}</p>
-        <button
-          type="button"
-          onClick={() => {
-            clearActivePollId();
-            router.push("/");
-          }}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold ${admin.shareBtn}`}
-        >
-          Back to home
-        </button>
-      </main>
+      <PopcorniScreen mode="app" source="account" className="h-screen">
+        <main className="flex h-full flex-col items-center justify-center gap-4 px-4">
+          <PopcorniAccountLinks />
+          <p style={surfaces.error}>{error ?? "Poll not found"}</p>
+          <button
+            type="button"
+            onClick={() => {
+              clearActivePollId();
+              router.push("/");
+            }}
+            className="rounded-xl px-4 py-2 text-sm font-semibold"
+            style={surfaces.button}
+          >
+            Back to home
+          </button>
+        </main>
+      </PopcorniScreen>
     );
   }
 
@@ -168,11 +205,17 @@ export default function AdminPage() {
   const isVotingOpen = !poll.is_closed;
 
   return (
-    <main
-      className={`${admin.bg} ${admin.text} h-screen max-h-screen overflow-hidden`}
-      data-theme={themeConfig.id}
-      data-admin-theme={themeConfig.id}
+    <PopcorniScreen
+      mode="app"
+      source="account"
+      className="h-screen max-h-screen overflow-hidden"
     >
+      <main
+        className="h-full max-h-full overflow-hidden"
+        data-theme={theme.id}
+        data-admin-theme={theme.id}
+        data-poll-theme={themeConfig.id}
+      >
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-3 py-2 sm:px-4 lg:px-5 lg:py-2.5">
         {/* Compact single-row header */}
         <header className="flex shrink-0 items-center gap-2 py-2 sm:gap-3">
@@ -181,12 +224,14 @@ export default function AdminPage() {
             className="group flex shrink-0 items-baseline gap-1"
           >
             <span
-              className={`font-[family-name:var(--font-display)] text-xl font-black tracking-tight transition sm:text-2xl ${admin.brand}`}
+              className="font-[family-name:var(--font-display)] text-xl font-black tracking-tight transition sm:text-2xl"
+              style={surfaces.accent}
             >
               PollPop
             </span>
             <span
-              className={`hidden text-[10px] font-medium uppercase tracking-widest sm:inline ${admin.live}`}
+              className="hidden text-[10px] font-medium uppercase tracking-widest sm:inline"
+              style={surfaces.muted}
             >
               live
             </span>
@@ -195,31 +240,36 @@ export default function AdminPage() {
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {questionNumber >= 2 ? (
               <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide ${admin.badge}`}
+                className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide"
+                style={surfaces.badge}
               >
                 Q{questionNumber}
               </span>
             ) : null}
             <span
-              className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${admin.badge}`}
+              className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+              style={surfaces.badge}
             >
               {isVotingOpen ? "Live" : "Closed"}
             </span>
             <h1
-              className={`min-w-0 truncate font-[family-name:var(--font-display)] text-lg font-extrabold leading-tight sm:text-xl ${admin.title}`}
+              className="min-w-0 truncate font-[family-name:var(--font-display)] text-lg font-extrabold leading-tight sm:text-xl"
+              style={surfaces.title}
             >
               {poll.title}
             </h1>
-            <span className={`hidden shrink-0 text-xs sm:inline ${admin.meta}`}>
+            <span className="hidden shrink-0 text-xs sm:inline" style={surfaces.muted}>
               {totalVotes} votes
             </span>
           </div>
 
+          <PopcorniAccountLinks compact />
           <button
             type="button"
             disabled={busy !== null}
             onClick={requestFinishStream}
-            className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium transition disabled:opacity-50 sm:px-3 sm:text-xs ${admin.finishBtn}`}
+            className="shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium transition disabled:opacity-50 sm:px-3 sm:text-xs"
+            style={surfaces.buttonSecondary}
           >
             {busy === "finish" ? "…" : "🛑 Finish Stream"}
           </button>
@@ -228,22 +278,25 @@ export default function AdminPage() {
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 overflow-hidden lg:grid-cols-[minmax(200px,240px)_minmax(0,1fr)] lg:gap-4">
           {/* Left: QR / links / status */}
           <aside
-            className={`${admin.cardBg} flex min-h-0 shrink-0 flex-row items-center gap-2.5 overflow-hidden !p-2.5 lg:flex-col lg:justify-between lg:gap-3 lg:!p-3`}
+            className="flex min-h-0 shrink-0 flex-row items-center gap-2.5 overflow-hidden rounded-2xl border !p-2.5 lg:flex-col lg:justify-between lg:gap-3 lg:!p-3"
+            style={cardStyle}
           >
             <div className="hidden w-full lg:block">
               <p
-                className={`text-[10px] font-bold uppercase tracking-wider ${admin.label}`}
+                className="text-[10px] font-bold uppercase tracking-wider"
+                style={surfaces.muted}
               >
                 Stream status
               </p>
-              <p className={`mt-0.5 text-sm font-semibold ${admin.title}`}>
+              <p className="mt-0.5 text-sm font-semibold" style={surfaces.title}>
                 {isVotingOpen ? "Voting open" : "Voting closed"}
               </p>
             </div>
 
             <div className="flex shrink-0 flex-col items-center gap-1">
               <p
-                className={`hidden text-[10px] font-semibold uppercase tracking-wider lg:block ${admin.label}`}
+                className="hidden text-[10px] font-semibold uppercase tracking-wider lg:block"
+                style={surfaces.muted}
               >
                 QR for Voters
               </p>
@@ -262,17 +315,20 @@ export default function AdminPage() {
               <CopyButton
                 label="📋 Copy Share Link"
                 value={voteUrl}
-                className={`w-full px-2 py-1.5 text-[11px] sm:text-xs lg:px-3 lg:py-2 ${admin.shareBtn}`}
+                className="w-full px-2 py-1.5 text-[11px] sm:text-xs lg:px-3 lg:py-2"
+                style={surfaces.button}
               />
               <CopyButton
                 label="🎥 Copy OBS Link"
                 value={obsUrl}
-                className={`w-full px-2 py-1.5 text-[11px] sm:text-xs lg:px-3 lg:py-2 ${admin.obsBtn}`}
+                className="w-full px-2 py-1.5 text-[11px] sm:text-xs lg:px-3 lg:py-2"
+                style={surfaces.button}
               />
               <CopyButton
                 label="🎥 Copy Projection Link"
                 value={projectionUrl}
-                className={`w-full px-2 py-1.5 text-[11px] sm:text-xs lg:px-3 lg:py-2 ${admin.projectionBtn}`}
+                className="w-full px-2 py-1.5 text-[11px] sm:text-xs lg:px-3 lg:py-2"
+                style={surfaces.buttonSecondary}
               />
             </div>
           </aside>
@@ -280,10 +336,12 @@ export default function AdminPage() {
           {/* Right: Live Results + CTA — no internal scroll */}
           <section className="flex min-h-0 flex-col gap-2 overflow-hidden">
             <div
-              className={`${admin.cardBg} flex min-h-0 flex-1 flex-col overflow-hidden !p-3`}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border !p-3"
+              style={cardStyle}
             >
               <h2
-                className={`mb-2 shrink-0 font-[family-name:var(--font-display)] text-sm font-bold ${admin.title}`}
+                className="mb-2 shrink-0 font-[family-name:var(--font-display)] text-sm font-bold"
+                style={surfaces.title}
               >
                 📊 Live Results
               </h2>
@@ -299,6 +357,8 @@ export default function AdminPage() {
                   bumpedOptionId={lastBumpedOptionId}
                   isClosed={poll.is_closed}
                   questionNumber={poll.question_number}
+                  premiumFx={features.premiumWinnerFx}
+                  chrome={chrome}
                 />
               </div>
             </div>
@@ -308,11 +368,8 @@ export default function AdminPage() {
                 type="button"
                 disabled={busy !== null}
                 onClick={requestPrimaryAction}
-                className={`w-full rounded-xl px-4 py-2.5 text-sm font-bold shadow-lg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:py-3 sm:text-base ${
-                  poll.is_closed
-                    ? admin.nextQuestionBtn
-                    : admin.finishVotingBtn
-                }`}
+                className="w-full rounded-xl px-4 py-2.5 text-sm font-bold shadow-lg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:py-3 sm:text-base"
+                style={surfaces.button}
               >
                 {busy === "closing"
                   ? "Finishing voting…"
@@ -322,10 +379,12 @@ export default function AdminPage() {
                       ? "🚀 Next Question"
                       : "🏁 Finish Voting"}
               </button>
-              <p className={`mt-1 text-center text-[10px] leading-snug ${admin.hint}`}>
+              <p className="mt-1 text-center text-[10px] leading-snug" style={surfaces.muted}>
                 {poll.is_closed
                   ? "Winner stays on OBS until Next Question."
-                  : "Finish voting to reveal the winner, then Next Question."}
+                  : features.premiumWinnerFx
+                    ? `Popcorni Pro · ${theme.name} · premium winner FX is on.`
+                    : `Theme ${theme.name}. Popcorni Pro unlocks premium winner FX.`}
               </p>
             </div>
           </section>
@@ -361,6 +420,7 @@ export default function AdminPage() {
           onConfirm={() => void runFinishStream()}
         />
       </div>
-    </main>
+      </main>
+    </PopcorniScreen>
   );
 }

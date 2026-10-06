@@ -27,6 +27,17 @@ type LiveResultsChartProps = {
   projectionMode?: "dark" | "light";
   isClosed?: boolean;
   questionNumber?: number;
+  /** Popcorni Pro rainbow winner treatment */
+  premiumFx?: boolean;
+  /** Override chart ink so it stays readable on a Popcorni surface */
+  chrome?: {
+    label: string;
+    meta: string;
+    track: string;
+    empty: string;
+    shadow?: string;
+    accent?: string;
+  };
 };
 
 type RankKind = "first" | "second" | "lowest" | null;
@@ -86,6 +97,8 @@ export function LiveResultsChart({
   projectionMode = "dark",
   isClosed = false,
   questionNumber = 1,
+  premiumFx = false,
+  chrome,
 }: LiveResultsChartProps) {
   const themeConfig = getTheme(theme);
   const projection = themeConfig.projection[projectionMode];
@@ -186,14 +199,32 @@ export function LiveResultsChart({
     [options, counts, theme, useAvatars],
   );
 
-  const labelClass = transparent
-    ? "text-white drop-shadow"
-    : chartTone.label;
-  const metaClass = transparent
-    ? "text-white/90 drop-shadow"
-    : chartTone.meta;
-  const trackClass = transparent ? "bg-white/20" : chartTone.track;
-  const emptyClass = transparent ? "text-white/70" : chartTone.empty;
+  const labelClass = chrome
+    ? ""
+    : transparent
+      ? "text-white drop-shadow"
+      : chartTone.label;
+  const metaClass = chrome
+    ? ""
+    : transparent
+      ? "text-white/90 drop-shadow"
+      : chartTone.meta;
+  const trackClass = chrome ? "" : transparent ? "bg-white/20" : chartTone.track;
+  const emptyClass = chrome ? "" : transparent ? "text-white/70" : chartTone.empty;
+  const labelStyle = chrome
+    ? { color: chrome.label, textShadow: chrome.shadow }
+    : undefined;
+  const metaStyle = chrome
+    ? { color: chrome.meta, textShadow: chrome.shadow }
+    : undefined;
+  const trackStyle = chrome
+    ? {
+        backgroundColor: chrome.track,
+        boxShadow: chrome.accent
+          ? `inset 0 0 0 1px ${chrome.accent}`
+          : undefined,
+      }
+    : undefined;
   const badgeClass = themeConfig.vfx.mascotBadge;
 
   return (
@@ -282,6 +313,7 @@ export function LiveResultsChart({
                       ? "text-base font-bold sm:text-lg"
                       : "text-sm font-bold"
                 } ${labelClass} ${isProjection ? projection.textShadow : ""}`}
+                style={labelStyle}
               >
                 {option.text}
               </span>
@@ -293,6 +325,7 @@ export function LiveResultsChart({
                       ? "text-sm sm:text-base"
                       : "text-xs font-medium"
                 } ${metaClass} ${isProjection ? projection.textShadow : ""}`}
+                style={metaStyle}
               >
                 {optionVotes} ({sharePct.toFixed(0)}%)
               </span>
@@ -301,10 +334,15 @@ export function LiveResultsChart({
             <div className={labelPad}>
               <div
                 className={`relative overflow-visible rounded-full ${barHeight} ${trackClass}`}
+                style={trackStyle}
               >
                 <div
                   className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-500 ease-out ${
-                    isWinnerBar ? "winner-bar-pulse" : barColor
+                    isWinnerBar
+                      ? premiumFx
+                        ? "winner-bar-rainbow"
+                        : "winner-bar-pulse"
+                      : barColor
                   }`}
                   style={{ width: `${displayWidth}%` }}
                 />
@@ -360,6 +398,11 @@ export function LiveResultsChart({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className={`text-center ${compactAdmin ? "text-xs" : "text-sm"} ${emptyClass}`}
+            style={
+              chrome
+                ? { color: chrome.empty, textShadow: chrome.shadow }
+                : undefined
+            }
           >
             Waiting for votes…
           </motion.p>

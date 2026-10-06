@@ -25,7 +25,10 @@ function normalizePoll(row: Record<string, unknown>): Poll {
   };
 }
 
-export async function createPoll(input: CreatePollInput): Promise<Poll> {
+export async function createPoll(
+  input: CreatePollInput,
+  extras?: { userId?: string | null; premiumFx?: boolean },
+): Promise<Poll> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("polls")
@@ -34,9 +37,9 @@ export async function createPoll(input: CreatePollInput): Promise<Poll> {
       options: input.options,
       max_votes_per_user: input.max_votes_per_user,
       theme: input.theme,
-      user_id: null,
+      user_id: extras?.userId ?? null,
       is_closed: false,
-      enable_super_votes: false,
+      enable_super_votes: Boolean(extras?.premiumFx),
       manual_votes: {},
       question_number: 1,
     })
@@ -58,6 +61,20 @@ export async function fetchPoll(pollId: string): Promise<Poll | null> {
   if (error) throw new Error(error.message);
   if (!data) return null;
   return normalizePoll(data);
+}
+
+/** Persist Pro winner FX so OBS can render it without the streamer's login cookie. */
+export async function setPremiumFx(
+  pollId: string,
+  enabled: boolean,
+): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("polls")
+    .update({ enable_super_votes: enabled })
+    .eq("id", pollId);
+
+  if (error) throw new Error(error.message);
 }
 
 export async function closePoll(pollId: string): Promise<void> {

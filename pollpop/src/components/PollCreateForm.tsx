@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import { BrandHeader } from "@/components/BrandHeader";
+import { usePopcorniSession } from "@/components/popcorni/PopcorniSessionProvider";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   canUseTheme,
@@ -33,6 +34,7 @@ type PollCreateFormProps = {
   onSubmitPoll: (values: PollFormValues) => Promise<void>;
   showProPitch?: boolean;
   showFooterNote?: boolean;
+  banner?: ReactNode;
 };
 
 export function PollCreateForm({
@@ -42,6 +44,7 @@ export function PollCreateForm({
   onSubmitPoll,
   showProPitch = true,
   showFooterNote = true,
+  banner,
 }: PollCreateFormProps) {
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState<string[]>(EMPTY_OPTIONS);
@@ -49,6 +52,8 @@ export function PollCreateForm({
   const [theme, setTheme] = useState<PollTheme>("dark");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isPro, isLoading: authLoading, features } = usePopcorniSession();
+  const proUnlocked = !authLoading && isPro;
 
   const themeConfig = getTheme(theme);
   const create = themeConfig.create;
@@ -86,8 +91,8 @@ export function PollCreateForm({
       return;
     }
 
-    if (!canUseTheme(theme, false)) {
-      setError("This theme requires Pro. Pick another theme or upgrade.");
+    if (!canUseTheme(theme, proUnlocked)) {
+      setError("This theme requires Popcorni Pro. Pick another theme or upgrade.");
       return;
     }
 
@@ -130,6 +135,10 @@ export function PollCreateForm({
             ) : undefined
           }
         />
+
+        {banner ? (
+          <div className={`mb-4 text-sm ${create.subtitle}`}>{banner}</div>
+        ) : null}
 
         <section>
           <form onSubmit={(e) => void onSubmit(e)} className="space-y-6">
@@ -221,15 +230,19 @@ export function PollCreateForm({
                   className={`w-full appearance-none rounded-xl border bg-[length:1rem] bg-[right_1rem_center] bg-no-repeat px-4 py-3 pr-10 outline-none focus:ring-2 ${create.select}`}
                   style={selectChevron}
                 >
-                  {THEME_OPTIONS.map((opt) => (
-                    <option
-                      key={opt.value}
-                      value={opt.value}
-                      className={create.optionBg}
-                    >
-                      {opt.label}
-                    </option>
-                  ))}
+                  {THEME_OPTIONS.map((opt) => {
+                    const locked = !canUseTheme(opt.value, proUnlocked);
+                    return (
+                      <option
+                        key={opt.value}
+                        value={opt.value}
+                        disabled={locked}
+                        className={create.optionBg}
+                      >
+                        {locked ? `${opt.label} 🔒 Pro` : opt.label}
+                      </option>
+                    );
+                  })}
                 </select>
               </label>
             </div>
@@ -254,7 +267,9 @@ export function PollCreateForm({
               >
                 <p>★ Monetize your stream with Super Votes & Custom Avatars!</p>
                 <p className="opacity-80">
-                  Upgrade to Pro ($8/mo) — coming soon
+                  {features.premiumWinnerFx
+                    ? "Popcorni Pro is active — premium winner FX and extra polls are unlocked."
+                    : "Upgrade to Popcorni Pro ($8/mo) to unlock premium winner FX and more than one live poll."}
                 </p>
               </div>
             )}
