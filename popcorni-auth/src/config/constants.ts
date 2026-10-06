@@ -9,7 +9,8 @@ import type { PopcorniThemeId } from "@/types/theme";
 
 export const DEV_SERVER_PORT = 3003;
 export const DEFAULT_SITE_URL = `http://localhost:${DEV_SERVER_PORT}`;
-export const DEFAULT_POLLPOP_PORT = 3002;
+/** Used only when NEXT_PUBLIC_POLLPOP_URL is unset. */
+export const DEFAULT_POLLPOP_PORT = 3000;
 export const DEFAULT_POLLPOP_URL = `http://localhost:${DEFAULT_POLLPOP_PORT}`;
 
 export const ENV = {
@@ -286,8 +287,14 @@ export function getStripeProCheckoutUrl(): string {
   return process.env.NEXT_PUBLIC_STRIPE_PRO_CHECKOUT_URL?.trim() ?? "";
 }
 
+/** Raw `NEXT_PUBLIC_POLLPOP_URL`. Empty when the env var is unset. */
 export function getPollpopUrlOverride(): string {
   return process.env.NEXT_PUBLIC_POLLPOP_URL?.trim() ?? "";
+}
+
+/** Env URL first, then the local dev default. */
+export function getPollpopUrl(): string {
+  return getPollpopUrlOverride() || DEFAULT_POLLPOP_URL;
 }
 
 export function lockedThemeMessage(themeName: string): string {
