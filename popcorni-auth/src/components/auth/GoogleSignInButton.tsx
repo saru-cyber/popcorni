@@ -7,8 +7,10 @@ import type { ThemeSurfaces } from "@/types/theme";
 
 export function GoogleSignInButton({
   surfaces: surfacesOverride,
+  label,
 }: {
   surfaces?: ThemeSurfaces;
+  label?: string;
 }) {
   const { signInWithGoogle, isSigningIn } = usePopcorniAuth();
   const { surfaces: activeSurfaces } = usePopcorniTheme();
@@ -29,7 +31,7 @@ export function GoogleSignInButton({
       >
         G
       </span>
-      {isSigningIn ? AUTH_COPY.signingIn : AUTH_COPY.googleButtonLabel}
+      {isSigningIn ? AUTH_COPY.signingIn : label ?? AUTH_COPY.googleButtonLabel}
     </button>
   );
 }

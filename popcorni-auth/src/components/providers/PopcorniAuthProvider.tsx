@@ -11,11 +11,12 @@ import {
   type ReactNode,
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import { AUTH, AUTH_COPY, isSupabaseConfigured } from "@/config/constants";
+import { AUTH, ACCOUNT_COPY, AUTH_COPY, isSupabaseConfigured } from "@/config/constants";
 import { continueToReturnTarget } from "@/lib/auth/callback";
 import { evaluateIsPro } from "@/lib/auth/evaluateProStatus";
 import {
   loadOrCreateProfile,
+  saveDisplayName,
   subscribeToProfile,
   toPopcorniUser,
 } from "@/lib/auth/profile";
@@ -39,6 +40,7 @@ export type PopcorniAuthContextValue = {
   loginModalOpen: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateDisplayName: (name: string) => Promise<string | null>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   clearAuthError: () => void;
@@ -166,7 +168,6 @@ export function PopcorniAuthProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       setAuthError(AUTH_COPY.notConfigured);
-      setLoginModalOpen(true);
       return;
     }
 
@@ -187,7 +188,6 @@ export function PopcorniAuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       setIsSigningIn(false);
       setAuthError(AUTH_COPY.signInFailed);
-      setLoginModalOpen(true);
     }
   }, []);
 
@@ -198,6 +198,18 @@ export function PopcorniAuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setProfile(null);
   }, []);
+
+  const updateDisplayName = useCallback(async (name: string) => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !user) return ACCOUNT_COPY.nameSaveFailed;
+    try {
+      const next = await saveDisplayName(supabase, user.id, name);
+      setProfile(next);
+      return null;
+    } catch (error) {
+      return error instanceof Error ? error.message : ACCOUNT_COPY.nameSaveFailed;
+    }
+  }, [user]);
 
   const openLoginModal = useCallback(() => setLoginModalOpen(true), []);
   const closeLoginModal = useCallback(() => setLoginModalOpen(false), []);
@@ -215,6 +227,7 @@ export function PopcorniAuthProvider({ children }: { children: ReactNode }) {
       loginModalOpen,
       signInWithGoogle,
       signOut,
+      updateDisplayName,
       openLoginModal,
       closeLoginModal,
       clearAuthError,
@@ -231,6 +244,7 @@ export function PopcorniAuthProvider({ children }: { children: ReactNode }) {
       loginModalOpen,
       signInWithGoogle,
       signOut,
+      updateDisplayName,
       openLoginModal,
       closeLoginModal,
       clearAuthError,

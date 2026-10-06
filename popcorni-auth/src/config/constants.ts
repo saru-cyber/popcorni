@@ -75,6 +75,7 @@ export const AUTH_QUERY = {
 export const PROFILE_FIELDS = {
   id: "id",
   email: "email",
+  displayName: "display_name",
   isPro: "is_pro",
   proExpiresAt: "pro_expires_at",
   stripeConnectId: "stripe_connect_id",
@@ -83,12 +84,24 @@ export const PROFILE_FIELDS = {
 export const PROFILE_COLUMNS = [
   PROFILE_FIELDS.id,
   PROFILE_FIELDS.email,
+  PROFILE_FIELDS.displayName,
   PROFILE_FIELDS.isPro,
   PROFILE_FIELDS.proExpiresAt,
   PROFILE_FIELDS.stripeConnectId,
 ].join(", ");
 
+export const PROFILE_COLUMNS_WITHOUT_DISPLAY_NAME = [
+  PROFILE_FIELDS.id,
+  PROFILE_FIELDS.email,
+  PROFILE_FIELDS.isPro,
+  PROFILE_FIELDS.proExpiresAt,
+  PROFILE_FIELDS.stripeConnectId,
+].join(", ");
+
+export const DISPLAY_NAME_MAX_LENGTH = 40;
+
 export const PROFILE_DEFAULTS = {
+  displayName: "",
   isPro: false,
   proExpiresAt: null,
   stripeConnectId: null,
@@ -172,6 +185,8 @@ export const APP_SUITE: readonly SuiteApp[] = [
 
 export const AUTH_COPY = {
   googleButtonLabel: `Continue with Google (${APP.name} Account)`,
+  googleButtonShort: "Continue with Google",
+  signInUp: "Sign in / Sign up",
   signingIn: "Continuing to Google…",
   signOut: "Sign out",
   openLoginModal: `${APP.name} Account`,
@@ -196,11 +211,25 @@ export const AUTH_COPY = {
 
 export const ACCOUNT_COPY = {
   eyebrow: "Account",
-  signedOut: "You are not signed in",
+  guest: "Guest User",
+  signedOut: "Not signed in",
+  editName: "Edit display name",
+  saveName: "Save",
+  cancelName: "Cancel",
+  namePlaceholder: "Display name",
   payoutsConnected: "Stripe Connect linked",
   payoutsMissing: "Stripe Connect not linked",
   profileUnavailable: "Profile details will appear after the account row is available.",
+  nameSaveFailed: "Could not save that display name.",
 } as const;
+
+export function welcomeHeading(name: string): string {
+  return name ? `Welcome, ${name}!` : "Welcome!";
+}
+
+export function loggedInAs(name: string): string {
+  return name ? `Logged in as ${name}` : "Logged in";
+}
 
 export const PRO_COPY = {
   expiresPrefix: "Pro access through",
@@ -220,6 +249,25 @@ export const THEME_COPY = {
 export const SUITE_COPY = {
   eyebrow: "App Suite",
   intro: `Apps that share your ${APP.name} account.`,
+} as const;
+
+export const ACCOUNT_INTRO_COPY = {
+  title: "What is Popcorni Account?",
+  premise: "Free for everyone. Powerful with Popcorni Account.",
+  points: [
+    {
+      title: "Pro Access",
+      body: "One subscription unlocks premium VFX, custom themes, and unlimited controls across all Popcorni apps.",
+    },
+    {
+      title: "Cloud Sync",
+      body: "Your active themes and custom designs seamlessly sync to OBS overlays and connected devices.",
+    },
+    {
+      title: "Data Storage",
+      body: "Keep your active polls, settings, and session history safely backed up in the cloud.",
+    },
+  ],
 } as const;
 
 export const BILLING_COPY = {

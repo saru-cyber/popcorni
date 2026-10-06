@@ -7,6 +7,7 @@ export function parseProfile(value: unknown): Profile | null {
 
   const id = value[PROFILE_FIELDS.id];
   const email = value[PROFILE_FIELDS.email];
+  const displayName = value[PROFILE_FIELDS.displayName];
   const isPro = value[PROFILE_FIELDS.isPro];
   const proExpiresAt = value[PROFILE_FIELDS.proExpiresAt];
   const stripeConnectId = value[PROFILE_FIELDS.stripeConnectId];
@@ -20,6 +21,7 @@ export function parseProfile(value: unknown): Profile | null {
   return {
     id,
     email,
+    display_name: typeof displayName === "string" ? displayName : "",
     is_pro: isPro,
     pro_expires_at: proExpiresAt,
     stripe_connect_id: stripeConnectId,

@@ -5,6 +5,7 @@
 export type Profile = {
   id: string;
   email: string;
+  display_name: string;
   is_pro: boolean;
   pro_expires_at: string | null;
   stripe_connect_id: string | null;
@@ -14,6 +15,7 @@ export type Profile = {
 export type ProfileInsert = {
   id: string;
   email: string;
+  display_name: string;
   is_pro: false;
   pro_expires_at: null;
   stripe_connect_id: null;
@@ -23,4 +25,6 @@ export type ProfileInsert = {
 export type PopcorniUser = {
   id: string;
   email: string;
+  /** Name suggested by the auth provider, before a profile display name is saved. */
+  metadataName: string;
 };

@@ -66,6 +66,16 @@ body {
   transform: translateY(-2px);
 }
 
+.popcorni-intro {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--pc-intro-fill), var(--pc-intro-fill)) padding-box,
+    var(--pc-intro-frame) border-box;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--pc-card-shadow);
+}
+
 .popcorni-button,
 .popcorni-button-secondary,
 .popcorni-chip {
