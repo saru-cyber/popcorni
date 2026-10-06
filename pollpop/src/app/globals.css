@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b1220;
+  --foreground: #e8eef7;
+  --accent: #22d3ee;
+  --accent-hot: #fb923c;
+  --panel: #121a2b;
+  --panel-border: #1e2a42;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(34, 211, 238, 0.14), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(251, 146, 60, 0.1), transparent);
+  min-height: 100%;
+}
+
+html.obs-transparent,
+html.obs-transparent body {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* Admin View: body yields to theme shell on the page */
+body.admin-shell {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* Projection venue: solid canvas, no site chrome gradients */
+body.projection-shell {
+  background: #000 !important;
+  background-image: none !important;
+}
+
+input[type="radio"] {
+  accent-color: #22d3ee;
+}
+
+/* Race mascot: just voted */
+@keyframes mascot-jump {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-14px) scale(1.15);
+  }
+  50% {
+    transform: translateY(0) scale(1.05);
+  }
+  75% {
+    transform: translateY(-8px) scale(1.1);
+  }
+}
+
+/* Race mascot: chasing 2nd */
+@keyframes mascot-chase {
+  0%,
+  100% {
+    transform: translateX(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateX(3px) rotate(-12deg);
+  }
+}
+
+/* Race mascot: sleeping */
+@keyframes mascot-sleep {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Rank speech bubble */
+@keyframes badge-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mascot-jump {
+  animation: mascot-jump 0.55s ease-out infinite;
+}
+
+.mascot-chase {
+  animation: mascot-chase 0.45s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.mascot-sleep {
+  animation: mascot-sleep 2.4s ease-in-out infinite;
+}
+
+.mascot-badge {
+  animation: badge-pop 0.35s ease-out both;
+}
+
+/* Winner bar glow (no-avatar themes) */
+@keyframes winner-bar-pulse {
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.35);
+  }
+  50% {
+    filter: brightness(1.25) saturate(1.35);
+    box-shadow: 0 0 18px 4px rgba(244, 114, 182, 0.55);
+  }
+}
+
+.winner-bar-pulse {
+  animation: winner-bar-pulse 0.85s ease-in-out infinite;
+  background-image: linear-gradient(90deg, #fbbf24, #f472b6, #facc15) !important;
+}
+
+/* Winning mascot enlarge + glow (ties / single) */
+@keyframes mascot-winner-glow {
+  0%,
+  100% {
+    transform: scale(1.45);
+    filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.55));
+  }
+  50% {
+    transform: scale(1.65);
+    filter: drop-shadow(0 0 14px rgba(244, 114, 182, 0.85));
+  }
+}
+
+.mascot-winner {
+  animation: mascot-winner-glow 0.9s ease-in-out infinite;
+  transform-origin: center bottom;
+}
