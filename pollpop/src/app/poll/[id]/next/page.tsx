@@ -71,7 +71,6 @@ export default function NextQuestionPage() {
       questionNumber={nextQuestionNumber}
       headerTitle={`Create Question #${nextQuestionNumber}`}
       submitLabel={`🚀 Create Q${nextQuestionNumber}`}
-      showFooterNote={false}
       onSubmitPoll={async (values) => {
         const current = await fetchPoll(pollId);
         if (!current) throw new Error("Poll not found");

@@ -61,6 +61,7 @@ export function PopcorniScreen({
   source = mode === "obs" ? "shared" : "account",
   pollThemeId,
   className = "",
+  fill = false,
   children,
 }: {
   mode: "app" | "obs";
@@ -68,6 +69,8 @@ export function PopcorniScreen({
   source?: "account" | "shared";
   pollThemeId?: string | null;
   className?: string;
+  /** Keep children inside a fixed-height shell instead of growing past it. */
+  fill?: boolean;
   children: ReactNode;
 }) {
   const shared = useSharedPopcorniTheme(pollThemeId);
@@ -94,7 +97,9 @@ export function PopcorniScreen({
         />
       ) : null}
       <ThemeParticles theme={theme} />
-      <div className={`relative z-10 ${mode === "obs" ? "" : "min-h-full"}`}>
+      <div
+        className={`relative z-10 ${fill ? "h-full overflow-hidden" : mode === "obs" ? "" : "min-h-full"}`}
+      >
         {children}
       </div>
     </div>

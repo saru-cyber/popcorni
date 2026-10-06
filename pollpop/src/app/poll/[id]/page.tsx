@@ -12,7 +12,7 @@ import {
   incrementVotedCount,
 } from "@/lib/poll-storage";
 import { castVote } from "@/lib/polls";
-import { getPortalHomeUrl } from "@/lib/popcorni/portal";
+import { PopcorniAccountFooter } from "@/components/popcorni/PopcorniAccountFooter";
 import { useLivePoll } from "@/lib/hooks/useLivePoll";
 import { getOptionIcon } from "@/config/themes";
 
@@ -160,11 +160,7 @@ export default function VotePage() {
           <p className="mt-8 text-center text-xs" style={surfaces.muted}>
             Tap fast for COMBO! · Votes sync live to OBS · {theme.name}
           </p>
-          <p className="mt-2 text-center text-xs">
-            <a href={getPortalHomeUrl()} className="underline-offset-2 hover:underline" style={surfaces.accent}>
-              Popcorni Dashboard
-            </a>
-          </p>
+          <PopcorniAccountFooter className="mt-8" />
         </main>
       )}
     </PopcorniScreen>

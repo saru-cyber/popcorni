@@ -7,7 +7,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CopyButton } from "@/components/CopyButton";
 import { LiveResultsChart } from "@/components/LiveResultsChart";
-import { PopcorniAccountLinks } from "@/components/popcorni/PopcorniAccountLinks";
+import { PopcorniAccountFooter } from "@/components/popcorni/PopcorniAccountFooter";
 import {
   chartChrome,
   PopcorniScreen,
@@ -172,8 +172,8 @@ export default function AdminPage() {
     return (
       <PopcorniScreen mode="app" source="account" className="h-screen">
         <main className="flex h-full flex-col items-center justify-center gap-4 px-4">
-          <PopcorniAccountLinks />
           <p style={surfaces.muted}>Loading poll…</p>
+          <PopcorniAccountFooter className="mt-8 w-full max-w-xs" />
         </main>
       </PopcorniScreen>
     );
@@ -183,7 +183,6 @@ export default function AdminPage() {
     return (
       <PopcorniScreen mode="app" source="account" className="h-screen">
         <main className="flex h-full flex-col items-center justify-center gap-4 px-4">
-          <PopcorniAccountLinks />
           <p style={surfaces.error}>{error ?? "Poll not found"}</p>
           <button
             type="button"
@@ -196,6 +195,7 @@ export default function AdminPage() {
           >
             Back to home
           </button>
+          <PopcorniAccountFooter className="mt-8 w-full max-w-xs" />
         </main>
       </PopcorniScreen>
     );
@@ -208,6 +208,7 @@ export default function AdminPage() {
     <PopcorniScreen
       mode="app"
       source="account"
+      fill
       className="h-screen max-h-screen overflow-hidden"
     >
       <main
@@ -263,7 +264,6 @@ export default function AdminPage() {
             </span>
           </div>
 
-          <PopcorniAccountLinks compact />
           <button
             type="button"
             disabled={busy !== null}
@@ -386,6 +386,7 @@ export default function AdminPage() {
                     ? `Popcorni Pro · ${theme.name} · premium winner FX is on.`
                     : `Theme ${theme.name}. Popcorni Pro unlocks premium winner FX.`}
               </p>
+              <PopcorniAccountFooter className="mt-6" />
             </div>
           </section>
         </div>

@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import { BrandHeader } from "@/components/BrandHeader";
+import { PopcorniAccountFooter } from "@/components/popcorni/PopcorniAccountFooter";
 import { usePopcorniSession } from "@/components/popcorni/PopcorniSessionProvider";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
@@ -32,8 +33,6 @@ type PollCreateFormProps = {
   submitLabel: string;
   headerTitle: string;
   onSubmitPoll: (values: PollFormValues) => Promise<void>;
-  showProPitch?: boolean;
-  showFooterNote?: boolean;
   banner?: ReactNode;
 };
 
@@ -42,8 +41,6 @@ export function PollCreateForm({
   submitLabel,
   headerTitle,
   onSubmitPoll,
-  showProPitch = true,
-  showFooterNote = true,
   banner,
 }: PollCreateFormProps) {
   const [title, setTitle] = useState("");
@@ -52,7 +49,7 @@ export function PollCreateForm({
   const [theme, setTheme] = useState<PollTheme>("dark");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isPro, isLoading: authLoading, features } = usePopcorniSession();
+  const { isPro, isLoading: authLoading } = usePopcorniSession();
   const proUnlocked = !authLoading && isPro;
 
   const themeConfig = getTheme(theme);
@@ -261,38 +258,7 @@ export function PollCreateForm({
               {submitting ? "Creating…" : submitLabel}
             </button>
 
-            {showProPitch && (
-              <div
-                className={`space-y-1 pt-1 text-center text-xs ${create.subtitle}`}
-              >
-                <p>★ Monetize your stream with Super Votes & Custom Avatars!</p>
-                <p className="opacity-80">
-                  {features.premiumWinnerFx
-                    ? "Popcorni Pro is active — premium winner FX and extra polls are unlocked."
-                    : "Upgrade to Popcorni Pro ($8/mo) to unlock premium winner FX and more than one live poll."}
-                </p>
-              </div>
-            )}
-
-            {showFooterNote && (
-              <footer
-                className={`space-y-2 pt-2 text-center text-xs ${create.subtitle}`}
-              >
-                <p>
-                  Free plan: one active poll at a time. Close it to create the
-                  next.
-                </p>
-                <p>
-                  © PollPop 2026 |{" "}
-                  <a
-                    href="/terms"
-                    className="underline-offset-2 transition hover:underline"
-                  >
-                    Terms
-                  </a>
-                </p>
-              </footer>
-            )}
+            <PopcorniAccountFooter className={`!mt-12 ${create.subtitle}`} />
           </form>
         </section>
       </div>
