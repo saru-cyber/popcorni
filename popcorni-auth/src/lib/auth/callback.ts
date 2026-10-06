@@ -1,31 +1,20 @@
-import { AUTH_COPY } from "@/config/constants";
+import type { Session } from "@supabase/supabase-js";
 import {
   consumeReturnTo,
   peekReturnTo,
   resolvePostLoginLocation,
 } from "@/lib/auth/returnTo";
-import { publishSessionChanged } from "@/lib/auth/sessionChannel";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const inflight = new Map<string, Promise<string>>();
-
-export function completeOAuthCallback(code: string): Promise<string> {
-  const existing = inflight.get(code);
-  if (existing) return existing;
-
-  const promise = (async () => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) throw new Error(AUTH_COPY.notConfigured);
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) throw error;
-    const { data } = await supabase.auth.getSession();
-    const returnTo = consumeReturnTo();
-    publishSessionChanged();
-    return resolvePostLoginLocation(returnTo, data.session);
-  })();
-
-  inflight.set(code, promise);
-  return promise;
+/**
+ * A finished code exchange is success when Supabase returns no error, or when
+ * a session is already stored (the code can be rejected after the session exists).
+ */
+export function isOAuthExchangeSuccess(
+  error: unknown,
+  session: Session | null,
+): boolean {
+  return error == null || session != null;
 }
 
 export async function continueToReturnTarget(): Promise<void> {
